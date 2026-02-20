@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0d14;
+      --surface: #16161f;
+      --surface2: #1e1e2c;
+      --border: #2a2a3d;
+      --accent: #f0c040;
+      --accent2: #e05c5c;
+      --accent3: #5ce0a8;
+      --text: #e8e8f0;
+      --muted: #7070a0;
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* ── HEADER BAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border-bottom: 2px solid var(--accent);
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar h1 {
+      font-size: 2rem;
+      color: var(--accent);
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.15s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0d14;
+    }
+
+    .btn-primary:hover {
+      background: #ffd060;
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: var(--accent2);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #ff7070;
+    }
+
+    .btn-success {
+      background: var(--accent3);
+      color: #0d0d14;
+    }
+
+    .btn-success:hover {
+      background: #7fffcc;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+    }
+
+    .btn-lg {
+      padding: 14px 32px;
+      font-size: 1.1rem;
+    }
+
+    /* ── INPUTS ── */
+    input,
+    select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* ── SETUP SCREEN ── */
+    #setup {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    #setup h2 {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .setup-sub {
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    .player-add-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .player-add-row input {
+      flex: 1;
+    }
+
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .player-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+    }
+
+    .player-chip .pname {
+      font-weight: 700;
+    }
+
+    .player-chip .remove {
+      background: none;
+      border: none;
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    /* ── GAME SCREEN ── */
+    #game {
+      padding: 0;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--surface);
+      border-right: 2px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      font-size: 1.4rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .player-score-row {
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 12px;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .player-score-row.active-player {
+      border-color: var(--accent);
+      background: #1f1d0a;
+    }
+
+    .player-score-row .pn {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .player-score-row .ps {
+      font-family: 'Bebas Neue';
+      font-size: 1.8rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .score-adj {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .score-adj input {
+      width: 60px;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+    }
+
+    .score-adj .btn {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    .active-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #0d0d14;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Main content */
+    .main-content {
+      padding: 28px;
+    }
+
+    /* Timer */
+    .timer-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .timer-display {
+      font-family: 'Bebas Neue';
+      font-size: 3rem;
+      color: var(--accent);
+      min-width: 80px;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .timer-display.warning {
+      color: var(--accent2);
+    }
+
+    .timer-bar .timer-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Category selector */
+    .cat-section {
+      margin-bottom: 24px;
+    }
+
+    .cat-section h3 {
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .cat-btn {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 14px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      text-align: center;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+    }
+
+    .cat-btn:hover,
+    .cat-btn.selected {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #1a1a0a;
+    }
+
+    /* Question number picker */
+    .q-num-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .q-num-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: 'Bebas Neue';
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .q-num-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .q-num-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #1a1a0a;
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .q-num-btn.answered {
+      background: #0d2a1a;
+      border-color: var(--accent3);
+      color: var(--accent3);
+    }
+
+    .q-num-btn.answered::after {
+      content: '✓';
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--accent3);
+      color: #0d0d14;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      font-size: 0.6rem;
+      font-family: 'DM Sans';
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .q-num-btn.answered.active {
+      box-shadow: 0 0 0 2px var(--accent3);
+    }
+
+    /* Question area */
+    .question-area {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .q-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .q-cat-label {
+      background: var(--accent);
+      color: #0d0d14;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .q-num {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .question-text {
+      font-size: 1.3rem;
+      font-weight: 500;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .answer-reveal-btn {
+      background: var(--surface2);
+      border: 2px dashed var(--accent);
+      color: var(--accent);
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .answer-reveal-btn:hover {
+      background: var(--accent);
+      color: #0d0d14;
+    }
+
+    .answer-text {
+      background: var(--accent);
+      color: #0d0d14;
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: none;
+      animation: pop 0.2s ease;
+    }
+
+    @keyframes pop {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .q-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* Player selector modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      display: none;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 28px;
+      min-width: 340px;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .modal h3 {
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .modal-player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .modal-player-btn {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .modal-player-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Scoreboard screen */
+    #scoreboard {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    #scoreboard h2 {
+      font-size: 3rem;
+      color: var(--accent);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .score-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+    }
+
+    .score-table th {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      padding: 4px 16px;
+      text-align: left;
+    }
+
+    .score-table td {
+      padding: 14px 16px;
+      background: var(--surface);
+    }
+
+    .score-table td:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .score-table td:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .rank-1 td {
+      background: #1f1c06;
+      border: 1px solid var(--accent);
+    }
+
+    .rank-2 td {
+      background: #181818;
+      border: 1px solid #aaa;
+    }
+
+    .rank-3 td {
+      background: #1a1209;
+      border: 1px solid #cd7f32;
+    }
+
+    .rank-num {
+      font-family: 'Bebas Neue';
+      font-size: 1.6rem;
+      color: var(--muted);
+    }
+
+    .rank-1 .rank-num {
+      color: var(--accent);
+    }
+
+    .score-val {
+      font-family: 'Bebas Neue';
+      font-size: 2rem;
+      color: var(--accent);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent3);
+      color: #0d0d14;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .mt-16 {
+      margin-top: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup" class="screen active" style="padding-top: 60px;">
+    <h2>🎉 Trivia</h2>
+    <p class="setup-sub">Add players to get started. You can always manage scores during the game.</p>
+
+    <div class="player-add-row">
+      <input type="text" id="playerNameInput" placeholder="Enter player name..." maxlength="30" />
+      <button class="btn btn-primary" onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <div class="player-list" id="playerList"></div>
+
+    <button class="btn btn-primary btn-lg" onclick="startGame()" style="width:100%">Start Game →</button>
+    <hr class="divider">
+    <button class="btn btn-danger btn-sm" onclick="clearAllStorage()">🗑 Clear All Saved Data</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game" class="screen">
+    <div class="topbar">
+      <h1>🎯 Quiz Night</h1>
+      <div class="topbar-actions">
+        <span id="topActivePlayer" style="color: var(--muted); font-size: 0.9rem;"></span>
+        <button class="btn btn-ghost btn-sm" onclick="openPlayerModal()">Switch Player</button>
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('scoreboard'); renderScoreboard()">Scoreboard</button>
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('setup'); loadSetup()">← Back</button>
+      </div>
+    </div>
+
+    <div class="game-layout">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h3>Players</h3>
+        <div id="sidebarPlayers"></div>
+        <hr class="divider">
+        <button class="btn btn-primary" style="width:100%" onclick="openPlayerModal()">🔄 Change Active Player</button>
+      </div>
+
+      <!-- Main -->
+      <div class="main-content">
+        <!-- Timer -->
+        <div class="timer-bar">
+          <div class="timer-display" id="timerDisplay">00:00</div>
+          <div class="timer-btns">
+            <button class="btn btn-success btn-sm" onclick="startTimer()">▶ Start</button>
+            <button class="btn btn-ghost btn-sm" onclick="pauseTimer()">⏸ Pause</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetTimer()">↺ Reset</button>
+          </div>
+          <div style="flex:1"></div>
+          <select id="timerPreset" onchange="setTimerPreset()"
+            style="width:auto; padding: 6px 10px; font-size: 0.85rem;">
+            <option value="30" selected>30s</option>
+            <option value="60">60s</option>
+            <option value="90">90s</option>
+            <option value="120">2 min</option>
+          </select>
+        </div>
+
+        <!-- Category Selector -->
+        <div class="cat-section">
+          <h3>Categories</h3>
+          <div class="cat-grid" id="catGrid"></div>
+        </div>
+
+        <!-- Question Area -->
+        <div class="question-area" id="questionArea" style="display:none">
+          <div class="q-meta">
+            <span class="q-cat-label" id="qCatLabel"></span>
+            <span class="q-num" id="qNum"></span>
+          </div>
+          <!-- Question Number Picker -->
+          <div class="q-num-picker" id="qNumPicker"></div>
+          <div class="question-text" id="questionText"></div>
+          <button class="answer-reveal-btn" id="revealBtn" onclick="revealAnswer()">👁 Tap to Reveal Answer</button>
+          <div class="answer-text" id="answerText"></div>
+          <div class="q-nav">
+            <button class="btn btn-ghost" onclick="prevQuestion()">← Prev</button>
+            <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
+            <div style="flex:1"></div>
+            <div id="scoreButtons"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCOREBOARD SCREEN -->
+  <div id="scoreboard" class="screen" style="padding-top: 40px;">
+    <h2>🏆 Scoreboard</h2>
+    <table class="score-table" id="scoreTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Player</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="scoreTableBody"></tbody>
+    </table>
+    <div class="flex-row mt-16" style="justify-content:center; gap: 16px;">
+      <button class="btn btn-primary" onclick="showScreen('game')">← Back to Game</button>
+      <button class="btn btn-ghost" onclick="resetScores()">Reset All Scores</button>
+      <button class="btn btn-ghost" onclick="resetAnswered()">Clear Answered</button>
+    </div>
+  </div>
+
+  <!-- Player Select Modal -->
+  <div class="modal-overlay" id="playerModal">
+    <div class="modal">
+      <h3>Who's Playing Next?</h3>
+      <div class="modal-player-list" id="modalPlayerList"></div>
+      <button class="btn btn-ghost" style="width:100%" onclick="closePlayerModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Bonus Modal -->
+  <div class="modal-overlay" id="bonusModal">
+    <div class="modal">
+      <h3>🎁 Award Bonus</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:16px;" id="bonusModalDesc"></p>
+      <div class="modal-player-list" id="bonusPlayerList"></div>
+      <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeBonusModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ─────────────────────────────────────────
+    // QUIZ DATA
+    // ─────────────────────────────────────────
+    const quizData = {
+      "Common Abbreviations": [
+        { q: "What does POTUS stand for?", a: "President of the United States" },
+        { q: "What does IOU stand for?", a: "I Owe You" },
+        { q: "What does FAQ stand for?", a: "Frequently Asked Questions" },
+        { q: "What does ASAP stand for?", a: "As Soon As Possible" },
+        { q: "What does DIY stand for?", a: "Do It Yourself" },
+        { q: "What does ETA stand for?", a: "Estimated Time of Arrival" },
+        { q: "What does CEO stand for?", a: "Chief Executive Officer" },
+        { q: "What does PIN stand for?", a: "Personal Identification Number" },
+        { q: "What does SOS stand for (original meaning)?", a: "Save Our Souls (or Save Our Ship)" },
+        { q: "What does LOL stands for?", a: "Laugh Out Loud" },
+        { q: "What does VIP stand for?", a: "Very Important Person" },
+      ],
+      "Tech Abbreviations": [
+        { q: "What does URL stand for?", a: "Uniform Resource Locator" },
+        { q: "What does HTML stand for?", a: "HyperText Markup Language" },
+        { q: "What does CPU stand for?", a: "Central Processing Unit" },
+        { q: "What does RAM stand for?", a: "Random Access Memory" },
+        { q: "What does Wi-Fi stand for?", a: "Wireless Fidelity" },
+        { q: "What does PDF stand for?", a: "Portable Document Format" },
+        { q: "What does GPS stand for?", a: "Global Positioning System" },
+        { q: "What does USB stand for?", a: "Universal Serial Bus" },
+        { q: "What does API stand for?", a: "Application Programming Interface" },
+        { q: "What does AI stand for?", a: "Artificial Intelligence" },
+      ],
+      "Country Facts": [
+        { q: "I am the only country that is also a continent. What country am I?", a: "Australia" },
+        { q: "I have more natural lakes than any other country in the world. What country am I?", a: "Canada" },
+        { q: "I am the most populated country in the world (as of 2023). What country am I?", a: "India" },
+        { q: "I am the smallest country in the world by area, located inside a city. What country am I?", a: "Vatican City" },
+        { q: "I am home to the Amazon Rainforest and the largest country in South America. What country am I?", a: "Brazil" },
+        { q: "I have the longest coastline of any country in the world. What country am I?", a: "Canada" },
+        { q: "I am the only country with a non-rectangular flag among major nations. What country am I?", a: "Nepal" },
+        { q: "I am the country with the most time zones — I span 11. What country am I?", a: "Russia" },
+        { q: "I am the country where the Great Wall was built. What country am I?", a: "China" },
+        { q: "I am the country that has won the most FIFA World Cups. What country am I?", a: "Brazil (5 times)" },
+      ],
+      "Animal Facts": [
+        { q: "I am the largest land animal on Earth. What animal am I?", a: "African Elephant" },
+        { q: "I am the fastest land animal, reaching speeds of up to 70 mph. What animal am I?", a: "Cheetah" },
+        { q: "I am the only mammal capable of true flight. What animal am I?", a: "Bat" },
+        { q: "I am a marine mammal that uses echolocation and is known for its intelligence. What animal am I?", a: "Dolphin" },
+        { q: "I am the tallest animal on Earth. What animal am I?", a: "Giraffe" },
+        { q: "I have a lifespan of over 150 years and am a reptile. What animal am I?", a: "Giant Tortoise" },
+        { q: "I am the animal with the largest brain relative to body size (largest brain of any animal). What animal am I?", a: "Sperm Whale " },
+        { q: "I sleep standing up and am the national animal of Canada (horses sleep standing — trick! National animal of Canada is the Beaver). What animal am I?", a: "Beaver" },
+        { q: "I am the only bird that cannot walk but swims expertly and lives in Antarctica. What bird am I?", a: "Emperor Penguin" },
+        { q: "I am the venomous mammal with a bill and webbed feet that lays eggs. What animal am I?", a: "Platypus" },
+      ],
+      "Science & Nature": [
+        { q: "What is the chemical symbol for gold?", a: "Au" },
+        { q: "How many bones are in the adult human body?", a: "206" },
+        { q: "What planet is known as the Red Planet?", a: "Mars" },
+        { q: "What is the speed of light (approximate)?", a: "299,792 km/s (approximately 300,000 km/s)" },
+        { q: "What gas do plants absorb during photosynthesis?", a: "Carbon Dioxide (CO₂)" },
+        { q: "What is the hardest natural substance on Earth?", a: "Diamond" },
+        { q: "What is the most abundant gas in Earth's atmosphere?", a: "Nitrogen (78%)" },
+        { q: "What organ produces insulin in the human body?", a: "Pancreas" },
+        { q: "What is the powerhouse of the cell?", a: "Mitochondria" },
+        { q: "What is the name of the force that keeps planets in orbit around the sun?", a: "Gravity" },
+      ],
+      "History & World": [
+        { q: "In what year did World War II end?", a: "1945" },
+        { q: "Who was the first person to walk on the Moon?", a: "Neil Armstrong (1969)" },
+        { q: "Which ancient wonder of the world is still standing today?", a: "The Great Pyramid of Giza" },
+        { q: "What year did the Berlin Wall fall?", a: "1989" },
+        { q: "Who painted the Mona Lisa?", a: "Leonardo da Vinci" },
+        { q: "In what country was the game of chess invented?", a: "India" },
+        { q: "What was the name of the ship that sank in 1912 after hitting an iceberg?", a: "The Titanic" },
+        { q: "Who was the first female Nobel Prize winner?", a: "Marie Curie" },
+        { q: "What year did the French Revolution begin?", a: "1789" },
+        { q: "What ancient civilization built Machu Picchu?", a: "The Inca (Incan Civilization)" },
+      ],
+      "Pop Culture & Entertainment": [
+        { q: "What is the best-selling video game of all time?", a: "Minecraft" },
+        { q: "What movie features the quote 'To infinity and beyond!'?", a: "Toy Story" },
+        { q: "Which TV show features characters named Ross, Rachel, Monica, Chandler, Joey, and Phoebe?", a: "Friends" },
+        { q: "What is the name of Batman's butler?", a: "Alfred Pennyworth" },
+        { q: "What sport is played at Wimbledon?", a: "Tennis" },
+        { q: "Which singer is known as the 'Queen of Pop'?", a: "Madonna" },
+        { q: "In Harry Potter, what sport is played on broomsticks?", a: "Quidditch" },
+        { q: "What colour is the 'Go' square in Monopoly?", a: "The board has no standard coloring for Go — it's just the corner square. (Accept: White or Yellow depending on edition)" },
+        { q: "What is the name of the kingdom in Frozen?", a: "Arendelle" },
+        { q: "What famous music festival is held annually in Glastonbury, England?", a: "Glastonbury Festival" },
+      ],
+      "Food & Drink": [
+        { q: "What country did pizza originally come from?", a: "Italy" },
+        { q: "What is the main ingredient in guacamole?", a: "Avocado" },
+        { q: "What type of pastry is used to make a croissant?", a: "Laminated/Puff Pastry (Viennoiserie)" },
+        { q: "What is sushi traditionally wrapped in?", a: "Nori (seaweed)" },
+        { q: "What is the world's most expensive spice by weight?", a: "Saffron" },
+        { q: "What cocktail is made from vodka, tomato juice, and spices?", a: "Bloody Mary" },
+        { q: "What nut is used to make marzipan?", a: "Almond" },
+        { q: "What country is the origin of the dish 'Pad Thai'?", a: "Thailand" },
+        { q: "What is the term for a wine that contains no alcohol?", a: "Non-alcoholic wine / Dealcoholized wine" },
+        { q: "What grain is used to make traditional Japanese sake?", a: "Rice" },
+      ],
+      "Sports Trivia": [
+        { q: "How many players are on a standard soccer (football) team on the field?", a: "11" },
+        { q: "In which sport would you perform a 'slam dunk'?", a: "Basketball" },
+        { q: "What country invented the Olympic Games?", a: "Greece (Ancient Greece)" },
+        { q: "How many Grand Slam tennis tournaments are held each year?", a: "4 (Australian Open, French Open, Wimbledon, US Open)" },
+        { q: "What is the maximum score in a single frame of bowling?", a: "30 (three strikes)" },
+        { q: "In what sport is the term 'love' used to mean zero?", a: "Tennis" },
+        { q: "How many rings are on the Olympic flag?", a: "5" },
+        { q: "In golf, what term is used for one stroke under par?", a: "Birdie" },
+        { q: "What country has won the most Olympic gold medals overall (historically)?", a: "United States" },
+        { q: "What team sport is played with a puck?", a: "Ice Hockey" },
+      ],
+      "Words & Language": [
+        { q: "What is a word that reads the same forwards and backwards called?", a: "Palindrome" },
+        { q: "What language has the most native speakers in the world?", a: "Mandarin Chinese" },
+        { q: "What is the shortest complete sentence in English?", a: "'I am.' (or 'Go.')" },
+        { q: "What do you call a word that sounds like what it represents (e.g., buzz, hiss)?", a: "Onomatopoeia" },
+        { q: "How many letters are in the English alphabet?", a: "26" },
+        { q: "What language is the most widely spoken as a second language?", a: "English" },
+        { q: "What is a word that means the same as another word called?", a: "Synonym" },
+        { q: "What phobia is the fear of long words (ironically)?", a: "Hippopotomonstrosesquippedaliophobia" },
+        { q: "What is it called when the first letters of each line in a poem spell out a message?", a: "Acrostic" },
+        { q: "What is the term for a figure of speech comparing two unlike things using 'like' or 'as'?", a: "Simile" },
+      ],
+    };
+
+    const categories = Object.keys(quizData);
+
+    // ─────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────
+    let state = {
+      players: [],        // [{name, score}]
+      activePlayer: 0,    // index
+      currentCat: null,
+      currentQ: 0,
+      answeredQuestions: {}, // { "CategoryName": [0, 3, 7, ...] } - array of answered Q indices
+      scoredAmounts: {},     // { "CategoryName:qIdx": pts } - points awarded per question
+    };
+
+    function saveState() {
+      localStorage.setItem('quizNightState', JSON.stringify(state));
+    }
+    function loadState() {
+      const s = localStorage.getItem('quizNightState');
+      if (s) {
+        const loaded = JSON.parse(s);
+        // ensure fields exist for older saves
+        if (!loaded.answeredQuestions) loaded.answeredQuestions = {};
+        if (!loaded.scoredAmounts) loaded.scoredAmounts = {};
+        state = loaded;
+      }
+    }
+    function clearAllStorage() {
+      if (confirm('Clear all saved quiz data? This will reset players and scores.')) {
+        localStorage.removeItem('quizNightState');
+        state = { players: [], activePlayer: 0, currentCat: null, currentQ: 0, answeredQuestions: {}, scoredAmounts: {} };
+        renderSetup();
+        toast('All data cleared.');
+      }
+    }
+
+    // ─────────────────────────────────────────
+    // SETUP
+    // ─────────────────────────────────────────
+    function loadSetup() {
+      showScreen('setup');
+      renderSetup();
+    }
+
+    function renderSetup() {
+      const list = document.getElementById('playerList');
+      list.innerHTML = '';
+      state.players.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'player-chip';
+        div.innerHTML = `<span class="pname">${p.name} <span style="color:var(--muted); font-weight:400">– ${p.score} pts</span></span>
+      <button class="remove" onclick="removePlayer(${i})">✕</button>`;
+        list.appendChild(div);
+      });
+    }
+
+    function addPlayer() {
+      const input = document.getElementById('playerNameInput');
+      const name = input.value.trim();
+      if (!name) return;
+      if (state.players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+        toast('Player already exists!'); return;
+      }
+      state.players.push({ name, score: 0 });
+      input.value = '';
+      saveState();
+      renderSetup();
+      toast(`${name} added!`);
+    }
+
+    function removePlayer(i) {
+      state.players.splice(i, 1);
+      if (state.activePlayer >= state.players.length) state.activePlayer = 0;
+      saveState();
+      renderSetup();
+    }
+
+    document.getElementById('playerNameInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addPlayer();
+    });
+
+    function startGame() {
+      if (state.players.length < 1) { toast('Add at least one player!'); return; }
+      showScreen('game');
+      renderSidebar();
+      renderCatGrid();
+      if (state.currentCat) { loadQuestion(); }
+      updateTopBar();
+    }
+
+    // ─────────────────────────────────────────
+    // SCREENS
+    // ─────────────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // ─────────────────────────────────────────
+    // SIDEBAR
+    // ─────────────────────────────────────────
+    function renderSidebar() {
+      const container = document.getElementById('sidebarPlayers');
+      container.innerHTML = '';
+      state.players.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'player-score-row' + (i === state.activePlayer ? ' active-player' : '');
+        div.innerHTML = `
+      <div class="pn">${p.name}${i === state.activePlayer ? '<span class="active-badge">Active</span>' : ''}</div>
+      <div class="ps">${p.score}</div>
+    `;
+        container.appendChild(div);
+      });
+    }
+
+    function applyBonus(i) {
+      const input = document.getElementById(`bonus-${i}`);
+      const val = parseInt(input.value);
+      if (isNaN(val)) { toast('Enter a number'); return; }
+      state.players[i].score += val;
+      if (state.players[i].score < 0) state.players[i].score = 0;
+      input.value = '';
+      saveState();
+      renderSidebar();
+      toast(`${val > 0 ? '+' : ''}${val} pts for ${state.players[i].name}`);
+    }
+
+    function getScoredKey(cat, idx) {
+      return `${cat}:${idx}`;
+    }
+
+    function getScoredAmount(cat, idx) {
+      return state.scoredAmounts[getScoredKey(cat, idx)] || 0;
+    }
+
+    function renderScoreButtons() {
+      const container = document.getElementById('scoreButtons');
+      if (!container) return;
+      const alreadyScored = state.currentCat && isAnswered(state.currentCat, state.currentQ);
+      if (alreadyScored) {
+        const scored = getScoredAmount(state.currentCat, state.currentQ);
+        const bonus = Math.ceil(scored / 2);
+        container.innerHTML = `
+      <span style="color:var(--accent3); font-weight:700; font-size:0.85rem; margin-right:8px;">✓ Scored (${scored} pt${scored !== 1 ? 's' : ''})</span>
+      <button class="btn btn-primary btn-sm" onclick="openBonusModal()">🎁 Bonus (+${bonus})</button>
+    `;
+      } else {
+        container.innerHTML = `
+      <button class="btn btn-success btn-sm" onclick="awardPoint(1)">+1 Point ✓</button>
+      <button class="btn btn-success btn-sm" onclick="awardPoint(2)">+2 Points ✓</button>
+    `;
+      }
+    }
+
+    function awardPoint(pts) {
+      const p = state.players[state.activePlayer];
+      if (!p) return;
+      // Block if already scored
+      if (state.currentCat && isAnswered(state.currentCat, state.currentQ)) {
+        toast('Already scored — use Bonus instead!');
+        return;
+      }
+      p.score += pts;
+      if (state.currentCat) {
+        markAnswered(state.currentCat, state.currentQ);
+        state.scoredAmounts[getScoredKey(state.currentCat, state.currentQ)] = pts;
+      }
+      saveState();
+      renderSidebar();
+      renderQNumPicker();
+      renderScoreButtons();
+      renderCatGrid();
+      const questions = quizData[state.currentCat];
+      document.getElementById('qNum').textContent = `Q${state.currentQ + 1} / ${questions.length} ✓`;
+      toast(`+${pts} pt${pts > 1 ? 's' : ''} for ${p.name}! Q${state.currentQ + 1} marked ✓`);
+    }
+
+    // ─────────────────────────────────────────
+    // BONUS MODAL
+    // ─────────────────────────────────────────
+    function openBonusModal() {
+      const cat = state.currentCat;
+      const idx = state.currentQ;
+      const scored = getScoredAmount(cat, idx);
+      const bonus = Math.ceil(scored / 2);
+      document.getElementById('bonusModalDesc').textContent =
+        `Half of the scored ${scored} pt${scored !== 1 ? 's' : ''} = +${bonus} bonus point${bonus !== 1 ? 's' : ''}. Pick the player to receive it:`;
+      const list = document.getElementById('bonusPlayerList');
+      list.innerHTML = '';
+      state.players.forEach((p, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'modal-player-btn';
+        btn.innerHTML = `${p.name} <span style="float:right; color:var(--accent3); font-weight:900;">+${bonus}</span>`;
+        btn.onclick = () => { awardBonus(i, bonus); closeBonusModal(); };
+        list.appendChild(btn);
+      });
+      document.getElementById('bonusModal').classList.add('open');
+    }
+
+    function closeBonusModal() {
+      document.getElementById('bonusModal').classList.remove('open');
+    }
+
+    function awardBonus(playerIdx, bonus) {
+      state.players[playerIdx].score += bonus;
+      saveState();
+      renderSidebar();
+      toast(`🎁 +${bonus} bonus for ${state.players[playerIdx].name}!`);
+    }
+
+    // ─────────────────────────────────────────
+    // PLAYER MODAL
+    // ─────────────────────────────────────────
+    function openPlayerModal() {
+      const list = document.getElementById('modalPlayerList');
+      list.innerHTML = '';
+      state.players.forEach((p, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'modal-player-btn';
+        btn.textContent = p.name + (i === state.activePlayer ? ' ✓' : '');
+        btn.onclick = () => { setActivePlayer(i); closePlayerModal(); };
+        list.appendChild(btn);
+      });
+      document.getElementById('playerModal').classList.add('open');
+    }
+    function closePlayerModal() {
+      document.getElementById('playerModal').classList.remove('open');
+    }
+    function setActivePlayer(i) {
+      state.activePlayer = i;
+      saveState();
+      renderSidebar();
+      updateTopBar();
+      toast(`Now: ${state.players[i].name}'s turn`);
+    }
+    function updateTopBar() {
+      const p = state.players[state.activePlayer];
+      document.getElementById('topActivePlayer').textContent = p ? `🎯 ${p.name}'s turn` : '';
+    }
+
+    // ─────────────────────────────────────────
+    // CATEGORIES & QUESTIONS
+    // ─────────────────────────────────────────
+    function renderCatGrid() {
+      const grid = document.getElementById('catGrid');
+      grid.innerHTML = '';
+      categories.forEach(cat => {
+        const answeredCount = getAnswered(cat).length;
+        const total = quizData[cat].length;
+        const btn = document.createElement('button');
+        btn.className = 'cat-btn' + (state.currentCat === cat ? ' selected' : '');
+        btn.innerHTML = `${cat}<br><span style="font-size:0.72rem; font-weight:400; color:${answeredCount > 0 ? 'var(--accent3)' : 'var(--muted)'}; margin-top:4px; display:block;">${answeredCount}/${total} answered</span>`;
+        btn.onclick = () => selectCategory(cat);
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectCategory(cat) {
+      state.currentCat = cat;
+      state.currentQ = 0;
+      // Don't reset answered questions — preserve progress
+      saveState();
+      renderCatGrid();
+      loadQuestion();
+      resetTimer();
+    }
+
+    function getAnswered(cat) {
+      return state.answeredQuestions[cat] || [];
+    }
+
+    function isAnswered(cat, idx) {
+      return getAnswered(cat).includes(idx);
+    }
+
+    function markAnswered(cat, idx) {
+      if (!state.answeredQuestions[cat]) state.answeredQuestions[cat] = [];
+      if (!state.answeredQuestions[cat].includes(idx)) {
+        state.answeredQuestions[cat].push(idx);
+      }
+    }
+
+    function renderQNumPicker() {
+      const picker = document.getElementById('qNumPicker');
+      picker.innerHTML = '';
+      if (!state.currentCat) return;
+      const count = quizData[state.currentCat].length;
+      for (let i = 0; i < count; i++) {
+        const btn = document.createElement('button');
+        const answered = isAnswered(state.currentCat, i);
+        const active = i === state.currentQ;
+        btn.className = 'q-num-btn' + (active ? ' active' : '') + (answered ? ' answered' : '');
+        btn.textContent = i + 1;
+        btn.title = answered ? `Q${i + 1} — Answered` : `Q${i + 1}`;
+        btn.onclick = () => jumpToQuestion(i);
+        picker.appendChild(btn);
+      }
+    }
+
+    function jumpToQuestion(idx) {
+      state.currentQ = idx;
+      saveState();
+      loadQuestion();
+      resetTimer();
+    }
+
+    function loadQuestion() {
+      if (!state.currentCat) return;
+      const questions = quizData[state.currentCat];
+      const q = questions[state.currentQ];
+      document.getElementById('questionArea').style.display = 'block';
+      document.getElementById('qCatLabel').textContent = state.currentCat;
+      const answered = isAnswered(state.currentCat, state.currentQ);
+      document.getElementById('qNum').textContent = `Q${state.currentQ + 1} / ${questions.length}${answered ? ' ✓' : ''}`;
+      document.getElementById('questionText').textContent = q.q;
+      document.getElementById('revealBtn').style.display = 'block';
+      const ansEl = document.getElementById('answerText');
+      ansEl.style.display = 'none';
+      ansEl.textContent = '✅ ' + q.a;
+      renderQNumPicker();
+      renderScoreButtons();
+    }
+
+    function revealAnswer() {
+      document.getElementById('revealBtn').style.display = 'none';
+      document.getElementById('answerText').style.display = 'block';
+      pauseTimer();
+    }
+
+    function nextQuestion() {
+      if (!state.currentCat) return;
+      const len = quizData[state.currentCat].length;
+      jumpToQuestion((state.currentQ + 1) % len);
+    }
+
+    function prevQuestion() {
+      if (!state.currentCat) return;
+      const len = quizData[state.currentCat].length;
+      jumpToQuestion((state.currentQ - 1 + len) % len);
+    }
+
+    // ─────────────────────────────────────────
+    // TIMER
+    // ─────────────────────────────────────────
+    let timerInterval = null;
+    let timerSeconds = 30;
+    let timerRunning = false;
+
+    function setTimerPreset() {
+      timerSeconds = parseInt(document.getElementById('timerPreset').value);
+      timerRunning = false;
+      clearInterval(timerInterval);
+      updateTimerDisplay();
+    }
+
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+      timerInterval = setInterval(() => {
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          document.getElementById('timerDisplay').textContent = '⏰ TIME!';
+          document.getElementById('timerDisplay').classList.add('warning');
+          return;
+        }
+        timerSeconds--;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerSeconds = parseInt(document.getElementById('timerPreset').value);
+      document.getElementById('timerDisplay').classList.remove('warning');
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const el = document.getElementById('timerDisplay');
+      const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+      const s = (timerSeconds % 60).toString().padStart(2, '0');
+      el.textContent = `${m}:${s}`;
+      el.classList.toggle('warning', timerSeconds <= 10 && timerSeconds > 0);
+    }
+
+    // ─────────────────────────────────────────
+    // SCOREBOARD
+    // ─────────────────────────────────────────
+    function renderScoreboard() {
+      const sorted = [...state.players].sort((a, b) => b.score - a.score);
+      const tbody = document.getElementById('scoreTableBody');
+      tbody.innerHTML = '';
+      sorted.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.className = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+        tr.innerHTML = `<td><span class="rank-num">${i + 1}</span></td>
+      <td style="font-weight:700; font-size:1.05rem">${p.name}</td>
+      <td><span class="score-val">${p.score}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function resetScores() {
+      if (!confirm('Reset all scores to 0?')) return;
+      state.players.forEach(p => p.score = 0);
+      saveState();
+      renderScoreboard();
+      renderSidebar();
+      toast('Scores reset!');
+    }
+
+    function resetAnswered() {
+      if (!confirm('Clear all answered question marks?')) return;
+      state.answeredQuestions = {};
+      state.scoredAmounts = {};
+      saveState();
+      if (state.currentCat) { renderQNumPicker(); renderScoreButtons(); }
+      renderCatGrid();
+      toast('Answered markers cleared!');
+    }
+
+    // ─────────────────────────────────────────
+    // TOAST
+    // ─────────────────────────────────────────
+    let toastTimeout;
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ─────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────
+    loadState();
+    renderSetup();
+    updateTimerDisplay();
+  </script>
+</body>
+
+</html>
